@@ -1,7 +1,10 @@
 import nltk
 import string
 
+nltk.download('stopwords')
+
 from collections import Counter
+from nltk.corpus import stopwords
 
 
 def process_data(text):
@@ -13,12 +16,9 @@ def process_data(text):
     Output:
     '''
     new_text = lowercase_no_punctuation(text)
-    tokens = get_tokens(new_text)
-    count = Counter(tokens)
-    
-    print(count.most_common(10))
+    filtered_text = remove_stopwords(new_text)
 
-    return new_text
+    return filtered_text
 
 def lowercase_no_punctuation(text):
     '''
@@ -43,3 +43,15 @@ def get_tokens(text):
     tokens = nltk.word_tokenize(token_text)
 
     return tokens
+
+def remove_stopwords(text):
+    '''
+    Remove common stopwords from the tokens to get a better sense of the most
+    used words in the text.
+    '''
+    tokens = get_tokens(text)
+    new_text = [w for w in tokens if not w in stopwords.words('english')]
+
+    # Check new token counts
+    count = Counter(new_text)
+    return new_text
