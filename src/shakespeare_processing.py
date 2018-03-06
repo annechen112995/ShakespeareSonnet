@@ -57,3 +57,29 @@ def remove_stopwords(text):
     print(count.most_common(10))
 
     return new_text
+
+def fixed_length_training_seq(text):
+    '''
+    Create fixed length training sequences of length 40 char from the sonnet
+    corpus.
+
+    Input: Text file in the form of list of words
+
+    Output: List of 40 character sequences, or a list of one <40 char sequence
+    '''
+    text_string = ''
+    seqs = []
+
+    for word in text:
+        text_string += word
+
+    if len(text_string) < 40:
+        seqs.append(text_string)
+    else:
+        start = 0
+        while (start + 40) < len(text_string):
+
+            seqs.append(text_string[start:start + 40])
+            start += 1
+
+    return seqs
