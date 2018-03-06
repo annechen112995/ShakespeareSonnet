@@ -27,7 +27,8 @@ def lowercase_no_punctuation(text):
     new_text = []
     for line in text:
         line = line.lower()
-        new_text.append(line.translate(str.maketrans('','',string.punctuation)))
+        no_digits = ''.join([i for i in line if not i.isdigit()])
+        new_text.append(no_digits.translate(str.maketrans('','',string.punctuation)))
 
     return new_text
 
@@ -47,7 +48,8 @@ def get_tokens(text):
 def remove_stopwords(text):
     '''
     Remove common stopwords from the tokens to get a better sense of the most
-    used words in the text.
+    used words in the text. Also removes integers from the text (from verse
+    headers, etc)
     '''
     tokens = get_tokens(text)
     new_text = [w for w in tokens if not w in stopwords.words('english')]
@@ -71,7 +73,7 @@ def fixed_length_training_seq(text):
     seqs = []
 
     for word in text:
-        text_string += word
+        text_string += word + ' '
 
     if len(text_string) < 40:
         seqs.append(text_string)
