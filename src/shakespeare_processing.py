@@ -54,4 +54,6 @@ def remove_stopwords(text):
 
     # Check new token counts
     count = Counter(new_text)
+    print(count.most_common(10))
+
     return new_text
