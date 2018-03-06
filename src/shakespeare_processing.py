@@ -13,7 +13,8 @@ def process_data(text):
 
     Input: Text file, delimited by '\n'.
 
-    Output:
+    Output: List of strings of words, delimited by ‘\n’
+    Ex: [‘put’,\n ‘word’,\n  …,\n ‘here’,\n ‘potato’]
     '''
     new_text = lowercase_no_punctuation(text)
     filtered_text = remove_stopwords(new_text)
