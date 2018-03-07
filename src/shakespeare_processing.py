@@ -27,9 +27,16 @@ def lowercase_no_punctuation(text):
     '''
     new_text = []
     for line in text:
+        # Make text lowercase
         line = line.lower()
+
+        # Remove integer values
         no_digits = ''.join([i for i in line if not i.isdigit()])
-        new_text.append(no_digits.translate(str.maketrans('','',string.punctuation)))
+
+        # Remove punctuation
+        #new_text.append(no_digits.translate(str.maketrans('','',string.punctuation)))
+        
+        new_text.append(no_digits)
 
     return new_text
 
