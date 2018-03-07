@@ -11,6 +11,8 @@ from nltk.corpus import stopwords
 nltk.download('stopwords')
 nltk.download('punkt')
 
+BORDER = "==============================================================="
+
 
 def load_data(filename):
     '''
@@ -92,15 +94,12 @@ def remove_stopwords(text):
     return new_text
 
 
-def lowercase_no_int(text):
+def remove_int(text):
     '''
-    Convert text to all lowercase and remove numbers
+    Remove numbers from strings
     '''
     new_text = []
     for line in text:
-        # # Make text lowercase
-        # line = line.lower()
-
         # Remove integer values
         no_digits = ''.join([i for i in line if not i.isdigit()])
 
@@ -109,7 +108,18 @@ def lowercase_no_int(text):
     return new_text
 
 
-def process_data_RNN(text):
+def remove_empty(text):
+    '''
+    Removes all empty string
+    '''
+    new_text = []
+    for line in text:
+        if line != '':
+            new_text.append(line)
+    return new_text
+
+
+def process_data_RNN(text, verbose=0):
     '''
     Create fixed length training sequences of length 40 char from the sonnet
     corpus.
@@ -118,12 +128,18 @@ def process_data_RNN(text):
 
     Output: X, Y, dataX, dataY, int_to_char, n_vocab
     '''
-    border = "==============================================================="
-    new_text_list = lowercase_no_int(text)
+    
+    print(BORDER)
+    print("Processing datafile")
+
+    new_text_list = remove_int(text)
+    new_text_list = remove_empty(new_text_list)
     new_text = '\n'.join(new_text_list)
-    print(border)
-    print("Processed text: ", new_text)
-    print(border)
+    
+    if verbose == 1:
+        print(BORDER)   
+        print("Processed text: ", new_text)
+        print(BORDER)
 
     # create mapping of unique chars to integers, and a reverse mapping
     chars = sorted(list(set(new_text)))
@@ -133,28 +149,30 @@ def process_data_RNN(text):
     # summarize the loaded data
     n_chars = len(new_text)
     n_vocab = len(chars)
-    print("Total Characters: ", n_chars)
-    print("Total Vocab: ", n_vocab)
 
     # prepare the dataset of input to output pairs encoded as integers
     seq_length = 40
     dataX = []
     dataY = []
-    for i in range(0, n_chars - seq_length, 1):
+    for i in range(0, n_chars - seq_length):
         seq_in = new_text[i:i + seq_length]
         seq_out = new_text[i + seq_length]
         dataX.append([char_to_int[char] for char in seq_in])
         dataY.append(char_to_int[seq_out])
     n_patterns = len(dataX)
-    print("Total Patterns: ", n_patterns)
 
-    # reshape X to be [samples, time steps, features]
-    X = np.reshape(dataX, (n_patterns, seq_length, 1))
+    if verbose == 1:
+        print("Total Characters: ", n_chars)
+        print("Total Vocab: ", n_vocab)
+        print("Total Patterns: ", n_patterns)
+        print(BORDER)
 
-    # normalize
-    X = X / float(n_vocab)
+    X = np.zeros((n_patterns, seq_length, n_vocab))
+    y = np.zeros((n_patterns, n_vocab))
+    for i, sentence in enumerate(dataX):
+        for t, ind in enumerate(sentence):
+            X[i, t, ind] = 1
+        y[i, dataY[i]] = 1
 
-    # one hot encode the output variable
-    y = np_utils.to_categorical(dataY)
 
-    return X, y, dataX, dataY, int_to_char, n_vocab
+    return X, y, dataX, dataY, int_to_char, char_to_int
