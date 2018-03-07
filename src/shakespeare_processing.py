@@ -2,7 +2,6 @@ import os
 import nltk
 import string
 import numpy as np
-from keras.utils import np_utils
 
 from collections import Counter
 from nltk.corpus import stopwords
@@ -128,16 +127,16 @@ def process_data_RNN(text, verbose=0):
 
     Output: X, Y, dataX, dataY, int_to_char, n_vocab
     '''
-    
+
     print(BORDER)
     print("Processing datafile")
 
     new_text_list = remove_int(text)
     new_text_list = remove_empty(new_text_list)
     new_text = '\n'.join(new_text_list)
-    
+
     if verbose == 1:
-        print(BORDER)   
+        print(BORDER)
         print("Processed text: ", new_text)
         print(BORDER)
 
@@ -173,6 +172,5 @@ def process_data_RNN(text, verbose=0):
         for t, ind in enumerate(sentence):
             X[i, t, ind] = 1
         y[i, dataY[i]] = 1
-
 
     return X, y, dataX, dataY, int_to_char, char_to_int

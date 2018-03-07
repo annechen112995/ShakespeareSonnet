@@ -1,11 +1,12 @@
 import numpy as np
-from keras.utils import np_utils
+import sys
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from shakespeare_processing import *
 
 BORDER = "==============================================================="
+USAGE = "Usage: python RNN.py <training textfile> <generated textfile path>"
 
 
 def train_LSTM(X, y, verbose=0):
@@ -18,8 +19,8 @@ def train_LSTM(X, y, verbose=0):
     '''
 
     # Take a submit of sequences
-    X = X[0::50]
-    y = y[0::50]
+    # X = X[0::10]
+    # y = y[0::10]
 
     # define the LSTM model
     model = Sequential()
@@ -60,7 +61,7 @@ def generate_text(model, dataX, int_to_char, verbose=0):
     print(BORDER)
     print("Generating text")
     n_vocab = len(int_to_char)
-    diversity = 0.5
+    diversity = 0.2
 
     # pick a random seed
     start = np.random.randint(0, len(dataX) - 1)
@@ -115,21 +116,28 @@ def save_textfile(filename, text):
     return 0
 
 
-def RNN(filename, save_filename):
+def RNN(filename, save_filename, verbose=0):
     '''
     Given filename for training data, predict and generate new text and save
     in save_filename
     '''
     text_list = load_data(file)
-    (X, y, dataX, dataY, int_to_char, char_to_int) = process_data_RNN(text_list, verbose=1)
-    model = train_LSTM(X, y, verbose=1)
-    generated = generate_text(model, dataX, int_to_char, verbose=1)
+    (X, y, dataX, dataY, int_to_char, char_to_int) = (
+        process_data_RNN(text_list, verbose=verbose))
+    model = train_LSTM(X, y, verbose=verbose)
+    generated = generate_text(model, dataX, int_to_char, verbose=verbose)
     save_textfile(save, generated)
     return generated
 
 
 if __name__ == "__main__":
-    file = 'data/shakespeare.txt'
-    save = 'generated/shakespeare.txt'
-    generated = RNN(file, save)
+    if len(sys.argv) < 3:
+        print(USAGE)
+        quit()
+    file = sys.argv[1]
+    save = sys.argv[2]
+    verbose = 0
+    if len(sys.argv) > 3:
+        verbose = sys.argv[3]
+    generated = RNN(file, save, verbose=verbose)
     print(generated)
