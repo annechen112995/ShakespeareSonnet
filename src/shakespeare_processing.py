@@ -7,8 +7,8 @@ from collections import Counter
 from nltk.corpus import stopwords
 
 # Download required info libraries
-nltk.download('stopwords')
-nltk.download('punkt')
+# nltk.download('stopwords')
+# nltk.download('punkt')
 
 BORDER = "==============================================================="
 
@@ -118,6 +118,33 @@ def remove_empty(text):
     return new_text
 
 
+def lowercase(text):
+    '''
+    Convert text to all lowercase and remove punctuation and numbers
+    '''
+    new_text = []
+    for line in text:
+        # Make text lowercase
+        line = line.lower()
+
+        new_text.append(line)
+    return new_text
+
+
+def remove_punctuation(text):
+    '''
+    Convert text to all lowercase and remove punctuation and numbers
+    '''
+    new_text = []
+    for line in text:
+        sentence = ''.join([i for i in line])
+
+        # Remove punctuation
+        new_text.append(sentence.translate(
+            str.maketrans('', '', string.punctuation)))
+    return new_text
+
+
 def process_data_RNN(text, verbose=0):
     '''
     Create fixed length training sequences of length 40 char from the sonnet
@@ -128,16 +155,17 @@ def process_data_RNN(text, verbose=0):
     Output: X, Y, dataX, dataY, int_to_char, n_vocab
     '''
 
-    print(BORDER)
-    print("Processing datafile")
+    print("Processing datafile....")
 
     new_text_list = remove_int(text)
     new_text_list = remove_empty(new_text_list)
+    new_text_list = lowercase(new_text_list)
     new_text = '\n'.join(new_text_list)
 
     if verbose == 1:
         print(BORDER)
-        print("Processed text: ", new_text)
+        print("Processed text")
+        print(new_text)
         print(BORDER)
 
     # create mapping of unique chars to integers, and a reverse mapping
@@ -161,6 +189,8 @@ def process_data_RNN(text, verbose=0):
     n_patterns = len(dataX)
 
     if verbose == 1:
+        print(BORDER)
+        print("Processed Text Summary")
         print("Total Characters: ", n_chars)
         print("Total Vocab: ", n_vocab)
         print("Total Patterns: ", n_patterns)

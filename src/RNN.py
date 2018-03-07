@@ -1,12 +1,15 @@
 import numpy as np
 import sys
+import os
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from shakespeare_processing import *
 
 BORDER = "==============================================================="
-USAGE = "Usage: python RNN.py <training textfile> <generated textfile path>"
+USAGE = (
+    """Usage: python -W ignore RNN.py <training textfile>
+    <generated textfile path> <optional verbose>""")
 
 
 def train_LSTM(X, y, verbose=0):
@@ -17,6 +20,8 @@ def train_LSTM(X, y, verbose=0):
         X : a list of sequences of int
         Y : one-hot encoding of the int coming after the sequence
     '''
+
+    print("Building Model...")
 
     # Take a submit of sequences
     # X = X[0::10]
@@ -58,8 +63,9 @@ def generate_text(model, dataX, int_to_char, verbose=0):
     Output: generate_text as string
 
     '''
-    print(BORDER)
-    print("Generating text")
+
+    print("Generating text...")
+
     n_vocab = len(int_to_char)
     diversity = 0.2
 
@@ -94,11 +100,12 @@ def generate_text(model, dataX, int_to_char, verbose=0):
         seq.append(result)
 
         if verbose == 1:
-            print("pred: ", prediction[0])
-            print("selected index: ", index)
+            print(BORDER)
+            print("character ", i)
             print("selected char: ", result)
             print("new pattern: ",
                   ''.join([int_to_char[value] for value in pattern]))
+            print(BORDER)
 
     # Return seq as string
     return ''.join(seq)
@@ -110,6 +117,7 @@ def save_textfile(filename, text):
 
     Input: filename and text as string
     '''
+    print("Saving generated text...")
     f = open(filename, 'w')
     f.write(text)
     f.close()
@@ -138,6 +146,9 @@ if __name__ == "__main__":
     save = sys.argv[2]
     verbose = 0
     if len(sys.argv) > 3:
-        verbose = sys.argv[3]
+        verbose = int(sys.argv[3])
+
+    # Disable warning
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     generated = RNN(file, save, verbose=verbose)
     print(generated)
