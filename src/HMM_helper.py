@@ -68,21 +68,59 @@ def generate_poem(hmm, obs_map, n_words=500):
 
     lines = 0
     sylls = 0
-    sonnet = ''
+    sonnet = []
 
+    # Ugliest code i ever wrote rip
     while lines < 14:
         for word in sentence:
+            # Check if the word exists in the dict
             if word in syllables.keys():
+                # Check if word has more than one syllable possibility
                 if (len(syllables[word])) > 1:
-                    if 
+                    # Check if first value is E[int]
+                    if len(syllables[word][0]) > 1:
+                        # Check if word is ending word
+                        if (sylls + int(syllables[word][0][1])) == 10:
+                            sonnet.append(str(word) + '\n')
+                            sylls = 0
+                            lines += 1
+                            if lines == 14:
+                                break
+                        elif (sylls + int(syllables[word][0][1])) < 10:
+                            if (sylls + int(syllables[word][1][0])) < 10:
+                                sonnet.append(str(word))
+                                sylls += int(syllables[word][1][0])
+                            else:
+                                continue
+                        else:
+                            continue
+                    elif len(syllables[word][1]) > 1:
+                        if (sylls + int(syllables[word][1][1])) == 10:
+                            sonnet.append(str(word) + '\n')
+                            sylls = 0
+                            lines += 1
+                            if lines == 14:
+                                break
+                        elif (sylls + int(syllables[word][1][1])) < 10:
+                            if (sylls + int(syllables[word][0][0])) < 10:
+                                sonnet.append(str(word))
+                                sylls += int(syllables[word][0][0])
+                            else:
+                                continue
+                        else:
+                            continue
+                    else:
+                        continue
                 else:
                     if (sylls + int(syllables[word][0])) < 10:
-                        sonnet += str(word)
+                        sonnet.append(str(word))
                         sylls += int(syllables[word][0])
                     elif (sylls + int(syllables[word][0]) == 10):
-                        sonnet = sonnet + str(word) + '\n'
-                        lines += 1
+                        sonnet.append(str(word) + '\n')
                         sylls = 0
+                        lines += 1
+                        if lines == 14:
+                            break
                     else:
                         continue
             else:
