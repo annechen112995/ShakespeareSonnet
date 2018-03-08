@@ -3,14 +3,100 @@ import sys
 import os
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.optimizers import RMSprop
+from keras.optimizers import Adam
 from keras.layers import LSTM
 from shakespeare_processing import *
 
 BORDER = "==============================================================="
 USAGE = (
     """Usage: python -W ignore RNN.py <training textfile>
-    <generated textfile path> <optional verbose>""")
+    <generated textfile path> <opt. seed> <opt. div> <opt. verbose>""")
+
+
+def process_data_RNN(text_list, verbose=0):
+    '''
+    Create fixed length training sequences of length 40 char from the sonnet
+    corpus.
+
+    Input: Text file in the form of list of words
+
+    Output: X, Y, dataX, dataY, int_to_char, n_vocab
+    '''
+
+    print("Processing datafile....")
+
+    # Preprocessing
+    text_list = remove_int(text_list)
+    text_list = remove_empty(text_list)
+    text_list = lowercase(text_list)
+
+    new_text = '\n'.join(text_list)
+
+    # Separate into sonnets
+    sonnets = separate_sonnets(new_text)
+
+    if verbose == 1:
+        print(BORDER)
+        print("Processed text")
+        for i, sonnet in enumerate(sonnets):
+            print(BORDER)
+            print("Sonnet ", i, ": ")
+            print(sonnet)
+            print(BORDER)
+        print(new_text)
+        print(BORDER)
+
+    # create mapping of unique chars to integers, and a reverse mapping
+    chars = sorted(list(set(new_text)))
+    char_to_int = dict((c, i) for i, c in enumerate(chars))
+    int_to_char = dict((i, c) for i, c in enumerate(chars))
+
+    # summarize the loaded data
+    n_chars = len(new_text)
+    n_vocab = len(chars)
+    n_sonnets = len(sonnets)
+
+    # prepare the dataset of input to output pairs encoded as integers
+    seq_length = 40
+    dataX = []
+    dataY = []
+    sonnetInd = []  # list of indices that denotes the start
+    dataStart = []
+    for sonnet in sonnets:
+        for i in range(0, len(sonnet) - seq_length):
+            seq_in = sonnet[i:i + seq_length]
+            seq_out = sonnet[i + seq_length]
+            dataX.append([char_to_int[char] for char in seq_in])
+            dataY.append(char_to_int[seq_out])
+
+            if i == 0:
+                sonnetInd.append(len(dataX) - 1)
+                dataStart.append([char_to_int[char] for char in seq_in])
+    n_patterns = len(dataX)
+
+    if verbose == 1:
+        print(BORDER)
+        print("Processed Text Summary")
+        print("Total Characters: ", n_chars)
+        print("Total Vocab: ", n_vocab)
+        print("Total Patterns: ", n_patterns)
+        print("Number of Sonnets: ", n_sonnets)
+        print(BORDER)
+
+    X_start = np.zeros((n_sonnets, seq_length, n_vocab))
+    for j, i in enumerate(sonnetInd):
+        sentence = dataX[i]
+        for t, ind in enumerate(sentence):
+            X_start[j, t, ind] = 1
+
+    X = np.zeros((n_patterns, seq_length, n_vocab))
+    y = np.zeros((n_patterns, n_vocab))
+    for i, sentence in enumerate(dataX):
+        for t, ind in enumerate(sentence):
+            X[i, t, ind] = 1
+        y[i, dataY[i]] = 1
+
+    return X, y, dataX, dataY, dataStart, int_to_char, char_to_int
 
 
 def train_LSTM(X, y, verbose=0):
