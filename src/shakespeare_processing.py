@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 # nltk.download('stopwords')
 # nltk.download('punkt')
 
-BORDER = "==============================================================="
+BORDER = "=============================================================================="
 
 
 def load_data(filename):
@@ -113,7 +113,7 @@ def remove_empty(text):
     '''
     new_text = []
     for line in text:
-        if line != '':
+        if not line.isspace():
             new_text.append(line)
     return new_text
 
@@ -145,7 +145,7 @@ def remove_punctuation(text):
     return new_text
 
 
-def process_data_RNN(text, verbose=0):
+def process_data_RNN(text_list, verbose=0):
     '''
     Create fixed length training sequences of length 40 char from the sonnet
     corpus.
@@ -157,10 +157,12 @@ def process_data_RNN(text, verbose=0):
 
     print("Processing datafile....")
 
-    new_text_list = remove_int(text)
-    new_text_list = remove_empty(new_text_list)
-    new_text_list = lowercase(new_text_list)
-    new_text = '\n'.join(new_text_list)
+    # Preprocessing
+    # text_list = remove_int(text_list)
+    # text_list = remove_empty(text_list)
+    # text_list = lowercase(text_list)
+
+    new_text = '\n'.join(text_list)
 
     if verbose == 1:
         print(BORDER)

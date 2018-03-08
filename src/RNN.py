@@ -3,6 +3,7 @@ import sys
 import os
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.optimizers import RMSprop
 from keras.layers import LSTM
 from shakespeare_processing import *
 
@@ -31,8 +32,10 @@ def train_LSTM(X, y, verbose=0):
     model = Sequential()
     model.add(LSTM(128, input_shape=(X.shape[1], X.shape[2])))
     model.add(Dense(y.shape[1], activation='softmax'))
+
+    optimizer = RMSprop(lr=0.01)
     model.compile(loss='categorical_crossentropy',
-                  optimizer='RMSprop', metrics=['accuracy'])
+                  optimizer=optimizer, metrics=['accuracy'])
 
     # fit the model
     model.fit(X, y, epochs=50, batch_size=128, verbose=verbose)
@@ -49,7 +52,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-def generate_text(model, dataX, int_to_char, verbose=0):
+def generate_text(model, dataX, int_to_char, char_to_int, seed=0, verbose=0):
     '''
     Given model, dataX, int_to_char, n_vocab returns generated_text using
     predict function
@@ -65,15 +68,22 @@ def generate_text(model, dataX, int_to_char, verbose=0):
     '''
 
     print("Generating text...")
+    seed = 'shall i compare thee to a summer’s day?\n'
 
     n_vocab = len(int_to_char)
+    size = 40
     diversity = 0.2
 
-    # pick a random seed
-    start = np.random.randint(0, len(dataX) - 1)
-    pattern = dataX[start]
+    if seed == 0:
+        # pick a random seed
+        start = np.random.randint(0, len(dataX) - 1)
+        pattern = dataX[start]
+
+    else:
+        seed = 'shall i compare thee to a summer’s day?\n'
+        pattern = [char_to_int[char] for char in seed]
+
     seq = [int_to_char[value] for value in pattern]
-    size = len(pattern)
 
     if verbose == 1:
         print("Seed: ", ''.join(seq))
@@ -124,7 +134,7 @@ def save_textfile(filename, text):
     return 0
 
 
-def RNN(filename, save_filename, verbose=0):
+def RNN(filename, save_filename, seed=0, verbose=0):
     '''
     Given filename for training data, predict and generate new text and save
     in save_filename
@@ -133,7 +143,8 @@ def RNN(filename, save_filename, verbose=0):
     (X, y, dataX, dataY, int_to_char, char_to_int) = (
         process_data_RNN(text_list, verbose=verbose))
     model = train_LSTM(X, y, verbose=verbose)
-    generated = generate_text(model, dataX, int_to_char, verbose=verbose)
+    generated = generate_text(
+        model, dataX, int_to_char, char_to_int, seed=seed, verbose=verbose)
     save_textfile(save, generated)
     return generated
 
@@ -145,10 +156,13 @@ if __name__ == "__main__":
     file = sys.argv[1]
     save = sys.argv[2]
     verbose = 0
+    seed = 0
     if len(sys.argv) > 3:
         verbose = int(sys.argv[3])
+    if len(sys.argv) > 4:
+        seed = int(sys.argv[4])
 
     # Disable warning
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    generated = RNN(file, save, verbose=verbose)
+    generated = RNN(file, save, seed=seed, verbose=verbose)
     print(generated)
