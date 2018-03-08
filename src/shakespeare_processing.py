@@ -107,6 +107,20 @@ def remove_int(text):
     return new_text
 
 
+def remove_int_new(text):
+    '''
+    Remove numbers from strings
+    '''
+    new_text = ''
+    for line in text:
+        # Remove integer values
+        no_digits = ''.join([i for i in line if not i.isdigit()])
+
+        # Remove punctuation
+        new_text += no_digits
+    return new_text
+
+
 def remove_empty(text):
     '''
     Removes all empty string
@@ -120,7 +134,7 @@ def remove_empty(text):
 
 def lowercase(text):
     '''
-    Convert text to all lowercase and remove punctuation and numbers
+    Convert text to all lowercase
     '''
     new_text = []
     for line in text:
@@ -131,9 +145,22 @@ def lowercase(text):
     return new_text
 
 
+def lowercase_new(text):
+    '''
+    Convert text to all lowercase
+    '''
+    new_text = ''
+    for line in text:
+        # Make text lowercase
+        line = line.lower()
+
+        new_text += line
+    return new_text
+
+
 def remove_punctuation(text):
     '''
-    Convert text to all lowercase and remove punctuation and numbers
+    Remove punctuation
     '''
     new_text = []
     for line in text:
@@ -167,7 +194,7 @@ def process_data_RNN(text_list, verbose=0):
     text_list = lowercase(text_list)
 
     new_text = '\n'.join(text_list)
-    
+
     # Separate into sonnets
     sonnets = separate_sonnets(new_text)
 
