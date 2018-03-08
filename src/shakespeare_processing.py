@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 # nltk.download('stopwords')
 # nltk.download('punkt')
 
-BORDER = "=============================================================================="
+BORDER = "==================================================================="
 
 
 def load_data(filename):
@@ -145,6 +145,10 @@ def remove_punctuation(text):
     return new_text
 
 
+def separate_sonnets(text):
+    return text.split('\n\n\n')
+
+
 def process_data_RNN(text_list, verbose=0):
     '''
     Create fixed length training sequences of length 40 char from the sonnet
@@ -158,15 +162,23 @@ def process_data_RNN(text_list, verbose=0):
     print("Processing datafile....")
 
     # Preprocessing
-    # text_list = remove_int(text_list)
-    # text_list = remove_empty(text_list)
-    # text_list = lowercase(text_list)
+    text_list = remove_int(text_list)
+    text_list = remove_empty(text_list)
+    text_list = lowercase(text_list)
 
     new_text = '\n'.join(text_list)
+    
+    # Separate into sonnets
+    sonnets = separate_sonnets(new_text)
 
     if verbose == 1:
         print(BORDER)
         print("Processed text")
+        for i, sonnet in enumerate(sonnets):
+            print(BORDER)
+            print("Sonnet ", i, ": ")
+            print(sonnet)
+            print(BORDER)
         print(new_text)
         print(BORDER)
 
@@ -178,16 +190,24 @@ def process_data_RNN(text_list, verbose=0):
     # summarize the loaded data
     n_chars = len(new_text)
     n_vocab = len(chars)
+    n_sonnets = len(sonnets)
 
     # prepare the dataset of input to output pairs encoded as integers
     seq_length = 40
     dataX = []
     dataY = []
-    for i in range(0, n_chars - seq_length):
-        seq_in = new_text[i:i + seq_length]
-        seq_out = new_text[i + seq_length]
-        dataX.append([char_to_int[char] for char in seq_in])
-        dataY.append(char_to_int[seq_out])
+    sonnetInd = []  # list of indices that denotes the start
+    dataStart = []
+    for sonnet in sonnets:
+        for i in range(0, len(sonnet) - seq_length):
+            seq_in = sonnet[i:i + seq_length]
+            seq_out = sonnet[i + seq_length]
+            dataX.append([char_to_int[char] for char in seq_in])
+            dataY.append(char_to_int[seq_out])
+
+            if i == 0:
+                sonnetInd.append(len(dataX) - 1)
+                dataStart.append([char_to_int[char] for char in seq_in])
     n_patterns = len(dataX)
 
     if verbose == 1:
@@ -196,7 +216,14 @@ def process_data_RNN(text_list, verbose=0):
         print("Total Characters: ", n_chars)
         print("Total Vocab: ", n_vocab)
         print("Total Patterns: ", n_patterns)
+        print("Number of Sonnets: ", n_sonnets)
         print(BORDER)
+
+    X_start = np.zeros((n_sonnets, seq_length, n_vocab))
+    for j, i in enumerate(sonnetInd):
+        sentence = dataX[i]
+        for t, ind in enumerate(sentence):
+            X_start[j, t, ind] = 1
 
     X = np.zeros((n_patterns, seq_length, n_vocab))
     y = np.zeros((n_patterns, n_vocab))
@@ -205,4 +232,4 @@ def process_data_RNN(text_list, verbose=0):
             X[i, t, ind] = 1
         y[i, dataY[i]] = 1
 
-    return X, y, dataX, dataY, int_to_char, char_to_int
+    return X, y, dataX, dataY, dataStart, int_to_char, char_to_int
